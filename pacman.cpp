@@ -221,39 +221,36 @@ int main(int argc, char **argv)
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
-
-
         animacao = !animacao;
 
         if(ev.type == ALLEGRO_EVENT_TIMER)
         {
 
-            // as the user press the keys, pacman must move in the same direction as the key that the user pressed
-            // the image of pacman will change according to the key pressed
+
             if(key[KEY_UP] && MAPA[i-1][j] != '1')
             {
-                pacman = al_load_bitmap("img/pacman/pacmanU.tga"); // pacmanl = pacman Up
+                pacman = al_load_bitmap(caminho(animacao,'U')); // pacmanl = pacman Up
                 i--;
                 posy = i*q;
             }
 
             if(key[KEY_DOWN] && MAPA[i+1][j] != '1')
             {
-                pacman = al_load_bitmap("img/pacman/pacmanD.tga"); // pacmanl = pacman Down
+                pacman = al_load_bitmap(caminho(animacao,'D')); // pacmanl = pacman Down
                 i++;
                 posy = i*q;
             }
 
             if(key[KEY_LEFT] && MAPA[i][j-1] != '1')
             {
-                pacman = al_load_bitmap("img/pacman/pacmanL.tga"); // pacmanl = pacman Left
+                pacman = al_load_bitmap(caminho(animacao,'L')); // pacmanl = pacman Left
                 j--;
                 posx = j*q;
             }
 
             if(key[KEY_RIGHT] && MAPA[i][j+1] != '1')
             {
-                pacman = al_load_bitmap("img/pacman/pacmanR.tga"); // pacman Right
+                pacman = al_load_bitmap(caminho(animacao,'R')); // pacman Right
                 j++;
                 posx = j*q;
             }
