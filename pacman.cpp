@@ -327,6 +327,10 @@ void start()
     al_draw_bitmap(ready,x_Ready,y_Ready,0);
     al_flip_display();
     al_rest(4.0);
+    al_clear_to_color(al_map_rgb(0,0,0));
+    al_draw_bitmap(mapa,0,0,0);
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
 }
 
 void draw_tela_start()
