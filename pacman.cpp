@@ -11,12 +11,6 @@ const float FPS = 5;
 const int SCREEN_W = 500;
 const int SCREEN_H = 550;
 
-struct GHOST{
-    ALLEGRO_BITMAP *ghost   = NULL;
-    int posx;
-    int posy;
-};
-
 enum MYKEYS
 {
     KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
@@ -52,8 +46,14 @@ char MAPA[26][26] =
     "1111111111111111111111111",
 };
 
+struct GHOST{
+    ALLEGRO_BITMAP *ghost   = NULL;
+    int posx;
+    int posy;
+};
+
 ALLEGRO_DISPLAY *display = NULL; // interface
-ALLEGRO_AUDIO_STREAM *musica_tela_start = NULL; // mÃºsica da tela de start
+ALLEGRO_AUDIO_STREAM *musica_tela_start = NULL; // música da tela de start
 ALLEGRO_AUDIO_STREAM *musica_start_game = NULL; // musica do inicio do jogo
 ALLEGRO_SAMPLE *sample_tela_start = NULL; //musica da tela de start
 ALLEGRO_SAMPLE *sample_start_game = NULL;
@@ -63,22 +63,17 @@ ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_BITMAP *bouncer = NULL;
 ALLEGRO_BITMAP *mapa   = NULL; //mapa do jogo
 ALLEGRO_BITMAP *pacman   = NULL; //imagem do pacman
-ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de comeÃ§ar o jogo
+ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de começar o jogo
 ALLEGRO_BITMAP *tela_start   = NULL; //tela de start
 
 GHOST ghost[4];
 
-int i = 15, j = 12; //posiÃ§Ã£o inicial do Pacman na matriz
-int q = 20; //tamanho de cada cÃ©lula no mapa
+int i = 15, j = 12; //posição inicial do Pacman na matriz
+int q = 20; //tamanho de cada célula no mapa
 int posy = i*q;
 int posx = j*q;
-int x_Ready= 9.4 * q, y_Ready=12 * q ; // posiÃ§Ã£o da imagem READY!
+int x_Ready= 9.4 * q, y_Ready=12 * q ; // posição da imagem READY!
 char pac_estado;
-
-bool key[4] = { false, false, false, false };
-bool redraw = true;
-bool sair = false;
-
 
 bool key[4] = { false, false, false, false };
 bool redraw = true;
@@ -97,8 +92,9 @@ void destroy_all()
     al_destroy_event_queue(event_queue);
 }
 
+
 int inicializa() {
-    //iniciando bibliotecas, addons e arquivos necessÃ¡rios para rodar o pacman
+    //iniciando bibliotecas, addons e arquivos necessários para rodar o pacman
     if(!al_init())
     {
         cout << "Falha ao carregar Allegro" << endl;
@@ -235,12 +231,82 @@ int inicializa() {
     return 1;
 }
 
+void start()
+{
+    al_play_sample(sample_start_game, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+    al_clear_to_color(al_map_rgb(0,0,0));
+    al_draw_bitmap(mapa,0,0,0);
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_draw_bitmap(ready,x_Ready,y_Ready,0);
+    al_flip_display();
+    al_rest(4.0);
+    al_clear_to_color(al_map_rgb(0,0,0));
+    al_draw_bitmap(mapa,0,0,0);
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+}
+
+
+void draw_tela_start()
+{
+    //Inicio do jogo
+    //Enquanto a música de intro não acabar não inicia o jogo
+    bool sair=false;
+    bool animacao = true;
+    while(!sair)
+    {
+
+        al_play_sample(sample_tela_start, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+        ALLEGRO_EVENT ev;
+        al_wait_for_event(event_queue, &ev);
+
+        if(ev.type == ALLEGRO_EVENT_KEY_DOWN)
+        {
+            switch(ev.keyboard.keycode)
+            {
+                case ALLEGRO_KEY_ENTER:
+                    sair = true;
+                    break;
+            }
+        }
+        else if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+        {
+            break;
+        }
+        else if(ev.type == ALLEGRO_EVENT_KEY_UP)
+        {
+            switch(ev.keyboard.keycode)
+            {
+                case ALLEGRO_KEY_ENTER:
+                    sair = true;
+                    break;
+
+                case ALLEGRO_KEY_ESCAPE:
+                    destroy_all();
+                    break;
+            }
+        }
+
+        if(animacao)
+            tela_start = al_load_bitmap("img/maps/start1.bmp");
+        else
+            tela_start = al_load_bitmap("img/maps/start2.bmp");
+        al_draw_bitmap(tela_start,0,0,0);
+        al_flip_display();
+        al_rest(0.2);
+        animacao = !animacao;
+
+    }
+
+
+    al_destroy_sample(sample_tela_start);
+}
 
 
 char * caminho(bool munch,char key)
 {
     /*
-        muda a imagem de acordo com a direÃ§Ã£o que o pacman estÃ¡ andando:
+        muda a imagem de acordo com a direção que o pacman está andando:
         para cima  'UP' = pacmanU
         para baixo 'DOWN' = pacmanD
         para direita 'RIGHT' = pacmanR
@@ -318,85 +384,6 @@ void key_enable(int KEY,char celula)
 
 }
 
-void start()
-{
-    al_play_sample(sample_start_game, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-    al_clear_to_color(al_map_rgb(0,0,0));
-    al_draw_bitmap(mapa,0,0,0);
-    al_draw_bitmap(pacman,posx,posy,0);
-    al_draw_bitmap(ready,x_Ready,y_Ready,0);
-    al_flip_display();
-    al_rest(4.0);
-    al_clear_to_color(al_map_rgb(0,0,0));
-    al_draw_bitmap(mapa,0,0,0);
-    al_draw_bitmap(pacman,posx,posy,0);
-    al_flip_display();
-}
-
-void draw_tela_start()
-{
-    //Inicio do jogo
-    //Enquanto a mÃºsica de intro nÃ£o acabar nÃ£o inicia o jogo
-    bool sair=false;
-    bool animacao = true;
-    while(!sair)
-    {
-
-        al_play_sample(sample_tela_start, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-        ALLEGRO_EVENT ev;
-        al_wait_for_event(event_queue, &ev);
-
-        if(ev.type == ALLEGRO_EVENT_KEY_DOWN)
-        {
-            switch(ev.keyboard.keycode)
-            {
-                case ALLEGRO_KEY_ENTER:
-                    sair = true;
-                    break;
-            }
-        }
-        else if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-        {
-            break;
-        }
-        else if(ev.type == ALLEGRO_EVENT_KEY_UP)
-        {
-            switch(ev.keyboard.keycode)
-            {
-                case ALLEGRO_KEY_ENTER:
-                    sair = true;
-                    break;
-
-                case ALLEGRO_KEY_ESCAPE:
-                    al_destroy_audio_stream(musica_tela_start);
-                    al_destroy_sample(sample_tela_start);
-                    al_destroy_bitmap(bouncer);
-                    al_destroy_timer(timer);
-                    al_destroy_display(display);
-                    al_destroy_event_queue(event_queue);
-                    break;
-            }
-        }
-
-        if(animacao)
-            tela_start = al_load_bitmap("img/maps/start1.bmp");
-        else
-            tela_start = al_load_bitmap("img/maps/start2.bmp");
-        al_draw_bitmap(tela_start,0,0,0);
-        al_flip_display();
-        al_rest(0.2);
-        animacao = !animacao;
-
-    }
-
-
-    al_destroy_sample(sample_tela_start);
-}
-
-
-
-
-
 void redraw_pacman()
 {
     al_clear_to_color(al_map_rgb(0,0,0));
@@ -405,6 +392,8 @@ void redraw_pacman()
     al_flip_display();
 
 }
+
+
 
 void animacao(char estado)
 {
@@ -449,11 +438,13 @@ void animacao(char estado)
 
 int main(int argc, char **argv)
 {
+   // bool parado = true;
+
+
+    if(!inicializa()) return -1;
 
     //tela de start
     draw_tela_start();
-
-    if(!inicializa()) return -1;
 
     //da inicio ao jogo
     start();
@@ -472,6 +463,10 @@ int main(int argc, char **argv)
                 pac_estado = 'U';// pacmanU = pacman Up
                 i--;
                 posy = i*q;
+
+
+
+                //animacao(pac_estado,posx,posy,i,j);
             }
 
             else if(key[KEY_DOWN] && MAPA[i+1][j] != '1')
@@ -496,7 +491,6 @@ int main(int argc, char **argv)
                 j++;
                 posx = j*q;
             }
-
 
             redraw = true;
         }
@@ -547,7 +541,8 @@ int main(int argc, char **argv)
 
                 case ALLEGRO_KEY_ESCAPE:
                     sair = true;
-                    break;            }
+                    break;
+            }
 
         }
 
