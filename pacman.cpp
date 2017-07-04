@@ -66,13 +66,13 @@ int q = 20; //tamanho de cada célula no mapa
 int posy = i*q;
 int posx = j*q;
 int x_Ready= 9.5 * q, y_Ready=12 * q ; // posição da imagem READY!
-int direcao;
+char pac_estado;
 
 bool key[4] = { false, false, false, false };
 bool redraw = true;
 bool sair = false;
 
-char * caminho(bool animacao,char key)
+char * caminho(bool munch,char key)
 {
     /*
         muda a imagem de acordo com a direção que o pacman está andando:
@@ -82,25 +82,40 @@ char * caminho(bool animacao,char key)
         para esquerda 'LEFT' = pacmanL
 */
     char * arquivo = new char[23];
-    if(key == 'U')
-        strcpy(arquivo,"img/pacman/pacmanU.tga");
-    if(key == 'D')
-        strcpy(arquivo,"img/pacman/pacmanD.tga");
-    if(key == 'L')
-        strcpy(arquivo,"img/pacman/pacmanL.tga");
-    if(key == 'R')
-        strcpy(arquivo,"img/pacman/pacmanR.tga");
+    if(munch)
+    {
+        if(key == 'U')
+            strcpy(arquivo,"img/pacman/pacman_munchU.tga");
+        if(key == 'D')
+            strcpy(arquivo,"img/pacman/pacman_munchD.tga");
+        if(key == 'L')
+            strcpy(arquivo,"img/pacman/pacman_munchL.tga");
+        if(key == 'R')
+            strcpy(arquivo,"img/pacman/pacman_munchR.tga");
+    }
+    else
+    {
+        if(key == 'U')
+            strcpy(arquivo,"img/pacman/pacmanU.tga");
+        if(key == 'D')
+            strcpy(arquivo,"img/pacman/pacmanD.tga");
+        if(key == 'L')
+            strcpy(arquivo,"img/pacman/pacmanL.tga");
+        if(key == 'R')
+            strcpy(arquivo,"img/pacman/pacmanR.tga");
+    }
+
 
     return arquivo;
 
 }
 
-void key_enable(int KEY,char celula)
+void key_enable(int KEY)
 {
 
         if(KEY == KEY_UP)
         {
-            direcao = KEY_UP;
+            pac_estado = KEY_UP;
             key[KEY_UP] = true;
             key[KEY_DOWN] = false;
             key[KEY_LEFT] = false;
@@ -109,7 +124,7 @@ void key_enable(int KEY,char celula)
 
         if(KEY == KEY_DOWN)
         {
-            direcao = KEY_DOWN;
+            pac_estado = KEY_DOWN;
             key[KEY_DOWN] = true;
             key[KEY_UP] = false;
             key[KEY_LEFT] = false;
@@ -118,7 +133,7 @@ void key_enable(int KEY,char celula)
 
         if(KEY == KEY_LEFT)
         {
-            direcao = KEY_LEFT;
+            pac_estado = KEY_LEFT;
             key[KEY_LEFT] = true;
             key[KEY_UP] = false;
             key[KEY_DOWN] = false;
@@ -127,13 +142,16 @@ void key_enable(int KEY,char celula)
 
         if(KEY == KEY_RIGHT)
         {
-            direcao = KEY_RIGHT;
+            pac_estado = KEY_RIGHT;
             key[KEY_RIGHT] = true;
             key[KEY_LEFT] = false;
             key[KEY_UP] = false;
             key[KEY_DOWN] = false;
         }
-    }
+
+
+
+}
 
 
 
@@ -272,10 +290,60 @@ void start()
     al_rest(4.0);
 }
 
+void redraw_pacman()
+{
+    al_clear_to_color(al_map_rgb(0,0,0));
+    al_draw_bitmap(mapa,0,0,0);
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+
+}
+
+void animacao(char estado)
+{
+    if(estado == 'U')
+    {
+        pacman = al_load_bitmap(caminho(false,'U'));
+        redraw_pacman();
+        al_rest(0.1);
+        pacman = al_load_bitmap(caminho(true,'U'));
+        redraw_pacman();
+        al_rest(0.1);
+
+    }
+    if(estado == 'D')
+    {
+        pacman = al_load_bitmap(caminho(false,'D'));
+        redraw_pacman();
+        al_rest(0.1);
+        pacman = al_load_bitmap(caminho(true,'D'));
+        redraw_pacman();
+        al_rest(0.1);
+    }
+    if(estado == 'L')
+    {
+        pacman = al_load_bitmap(caminho(false,'L'));
+        redraw_pacman();
+        al_rest(0.1);
+        pacman = al_load_bitmap(caminho(true,'L'));
+        redraw_pacman();
+        al_rest(0.1);
+    }
+    if(estado== 'R')
+    {
+        pacman = al_load_bitmap(caminho(false,'R'));
+        redraw_pacman();
+        al_rest(0.1);
+        pacman = al_load_bitmap(caminho(true,'R'));
+        redraw_pacman();
+        al_rest(0.1);
+    }
+}
+
 int main(int argc, char **argv)
 {
    // bool parado = true;
-   bool animacao = false;
+
 
     if(!inicializa()) return -1;
 
@@ -287,44 +355,45 @@ int main(int argc, char **argv)
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
-        animacao = !animacao;
+
 
         if(ev.type == ALLEGRO_EVENT_TIMER)
         {
             if(key[KEY_UP] && MAPA[i-1][j] != '1')
             {
-                direcao = KEY_UP;
-                pacman = al_load_bitmap(caminho(animacao,'U')); // pacmanl = pacman Up
+                pac_estado = 'U';// pacmanU = pacman Up
                 i--;
                 posy = i*q;
+
+
+
+                //animacao(pac_estado,posx,posy,i,j);
             }
 
-            if(key[KEY_DOWN] && MAPA[i+1][j] != '1')
+            else if(key[KEY_DOWN] && MAPA[i+1][j] != '1')
             {
-                direcao = KEY_DOWN;
-                pacman = al_load_bitmap(caminho(animacao,'D')); // pacmanl = pacman Down
+                pac_estado = 'D';
                 i++;
                 posy = i*q;
+
             }
 
-            if(key[KEY_LEFT] && MAPA[i][j-1] != '1')
+            else if(key[KEY_LEFT] && MAPA[i][j-1] != '1')
             {
-                direcao = KEY_DOWN;
-                pacman = al_load_bitmap(caminho(animacao,'L')); // pacmanl = pacman Left
+                pac_estado = 'L';
                 j--;
                 posx = j*q;
+
             }
 
-            if(key[KEY_RIGHT] && MAPA[i][j+1] != '1')
+            else if(key[KEY_RIGHT] && MAPA[i][j+1] != '1')
             {
-                direcao = KEY_RIGHT;
-                pacman = al_load_bitmap(caminho(animacao,'R')); // pacman Right
+                pac_estado = 'R';
                 j++;
                 posx = j*q;
             }
 
-
-
+                //trocar_estado(pac_estado);
 
             redraw = true;
         }
@@ -337,19 +406,19 @@ int main(int argc, char **argv)
             switch(ev.keyboard.keycode)
             {
             case ALLEGRO_KEY_UP:
-                key_enable(KEY_UP,MAPA[i+1][j]);
+                key_enable(KEY_UP);
                 break;
 
             case ALLEGRO_KEY_DOWN:
-                key_enable(KEY_DOWN,MAPA[i-1][j]);
+                key_enable(KEY_DOWN);
                 break;
 
             case ALLEGRO_KEY_LEFT:
-                key_enable(KEY_LEFT,MAPA[i][j-1]);
+                key_enable(KEY_LEFT);
                 break;
 
             case ALLEGRO_KEY_RIGHT:
-                key_enable(KEY_RIGHT,MAPA[i][j+1]);
+                key_enable(KEY_RIGHT);
                 break;
             }
         }
@@ -357,23 +426,8 @@ int main(int argc, char **argv)
         {
             switch(ev.keyboard.keycode)
             {
-            case ALLEGRO_KEY_UP:
-                key_enable(KEY_UP,MAPA[i+1][j]);
-                break;
 
-            case ALLEGRO_KEY_DOWN:
-                key_enable(KEY_DOWN,MAPA[i-1][j]);
-                break;
-
-            case ALLEGRO_KEY_LEFT:
-                key_enable(KEY_LEFT,MAPA[i][j-1]);
-                break;
-
-            case ALLEGRO_KEY_RIGHT:
-                key_enable(KEY_RIGHT,MAPA[i][j+1]);
-                break;
-
-            case ALLEGRO_KEY_ESCAPE:
+                case ALLEGRO_KEY_ESCAPE:
                 sair = true;
                 break;
             }
@@ -384,11 +438,7 @@ int main(int argc, char **argv)
         {
             redraw = false;
 
-            al_clear_to_color(al_map_rgb(0,0,0));
-
-            al_draw_bitmap(mapa,0,0,0);
-            al_draw_bitmap(pacman,posx,posy,0);
-            al_flip_display();
+            animacao(pac_estado);
         }
     }
 
