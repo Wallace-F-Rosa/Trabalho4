@@ -472,10 +472,6 @@ int main(int argc, char **argv)
                 pac_estado = 'U';// pacmanU = pacman Up
                 i--;
                 posy = i*q;
-
-
-
-                //animacao(pac_estado,posx,posy,i,j);
             }
 
             else if(key[KEY_DOWN] && MAPA[i+1][j] != '1')
@@ -501,7 +497,6 @@ int main(int argc, char **argv)
                 posx = j*q;
             }
 
-                //trocar_estado(pac_estado);
 
             redraw = true;
         }
