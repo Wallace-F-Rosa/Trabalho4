@@ -31,8 +31,8 @@ char MAPA[26][26] =
     "1011110111011101110111101",
     "1011110100000000010111101",
     "1000110001111111000110001",
-    "1110111101100011011110111",
-    "1000000001100011000000001",
+    "1110111101155511011110111",
+    "1000000001155511000000001",
     "1011111101111111011111101",
     "1011100000000000000011101",
     "1000001111110111111000001",
@@ -66,6 +66,22 @@ ALLEGRO_BITMAP *pacman   = NULL; //imagem do pacman
 ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de começar o jogo
 ALLEGRO_BITMAP *tela_start   = NULL; //tela de start
 
+ALLEGRO_BITMAP *pillsr = NULL;
+ALLEGRO_BITMAP *score = NULL;
+ALLEGRO_BITMAP *zero = NULL;
+ALLEGRO_BITMAP *um = NULL;
+ALLEGRO_BITMAP *dois = NULL;
+ALLEGRO_BITMAP *tres = NULL;
+ALLEGRO_BITMAP *quatro = NULL;
+ALLEGRO_BITMAP *cinco = NULL;
+ALLEGRO_BITMAP *seis = NULL;
+ALLEGRO_BITMAP *sete = NULL;
+ALLEGRO_BITMAP *oito = NULL;
+ALLEGRO_BITMAP *nove = NULL;
+
+
+
+
 GHOST ghost[4];
 
 int i = 15, j = 12; //posição inicial do Pacman na matriz
@@ -74,6 +90,13 @@ int posy = i*q;
 int posx = j*q;
 int x_Ready= 9.4 * q, y_Ready=12 * q ; // posição da imagem READY!
 char pac_estado;
+float xscore = 1*q, yscore = 25.5*q;
+
+float mpillsdy[25][25];
+float mpillsdx[25][25];
+int qscore = 0;
+float xp1score = 6.1*q, xp2score = 7.42*q, xp3score = 8.7*q,xp4score = 10.1*q;
+float yp1score = 25.5*q, yp2score = 25.5*q, yp3score = 25.5*q, yp4score = 25.5*q;
 
 bool key[4] = { false, false, false, false };
 bool redraw = true;
@@ -184,6 +207,113 @@ int inicializa() {
     }
     al_draw_bitmap(ready,x_Ready,y_Ready,0);
 
+    pillsr = al_load_bitmap("img/maps/pillsr.bmp");
+    if(!pillsr)
+    {
+        cout << "Falla ao carregar pills" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(pillsr,0,0,0);
+
+    score = al_load_bitmap("img/maps/Score.bmp");
+    if(!score)
+    {
+        cout << "Falha ao carregar score" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(score,xscore,yscore,0);
+
+    zero = al_load_bitmap("img/maps/0.bmp");
+    if(!zero)
+    {
+        cout << "Falha ao carregar 0" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(zero,0,0,0);
+
+    um = al_load_bitmap("img/maps/1.bmp");
+    if(!um)
+    {
+        cout << "Falha ao carregar um" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(um,0,0,0);
+
+    dois = al_load_bitmap("img/maps/2.bmp");
+    if(!dois)
+    {
+        cout << "Falha ao carregar dois" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(dois,0,0,0);
+
+    tres = al_load_bitmap("img/maps/3.bmp");
+    if(!tres)
+    {
+        cout << "Falha ao carregar tres" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(tres,0,0,0);
+
+    quatro = al_load_bitmap("img/maps/4.bmp");
+    if(!quatro)
+    {
+        cout << "Falha ao carregar quatro" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(quatro,0,0,0);
+
+    cinco = al_load_bitmap("img/maps/5.bmp");
+    if(!cinco)
+    {
+        cout << "Falha ao carregar cinco" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(cinco,0,0,0);
+
+    seis = al_load_bitmap("img/maps/6.bmp");
+    if(!seis)
+    {
+        cout << "Falha ao carregar seis" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(seis,0,0,0);
+
+    sete = al_load_bitmap("img/maps/7.bmp");
+    if(!sete)
+    {
+        cout << "Falha ao carregar sete" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(sete,0,0,0);
+
+    oito = al_load_bitmap("img/maps/8.bmp");
+    if(!oito)
+    {
+        cout << "Falha ao carregar oito" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(oito,0,0,0);
+
+    nove = al_load_bitmap("img/maps/9.bmp");
+    if(!nove)
+    {
+        cout << "Falha ao carregar nove" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(nove,0,0,0);
 
 
     event_queue = al_create_event_queue();
@@ -242,6 +372,17 @@ void start()
     al_rest(4.0);
     al_clear_to_color(al_map_rgb(0,0,0));
     al_draw_bitmap(mapa,0,0,0);
+    for (int i = 0;i<25;i++)
+        for (int j = 0;j<25;j++)
+            if (MAPA[i][j]=='0'){
+                mpillsdx[i][j] = j*q;
+                mpillsdy[i][j] = i*q;
+                al_draw_bitmap(pillsr,mpillsdx[i][j],mpillsdy[i][j],0);
+            }
+    for (int i = 0;i<25;i++)
+        for (int j=0;j<25;j++)
+            if (MAPA[i][j]=='0')
+
     al_draw_bitmap(pacman,posx,posy,0);
     al_flip_display();
 }
@@ -278,7 +419,7 @@ void draw_tela_start()
             switch(ev.keyboard.keycode)
             {
                 case ALLEGRO_KEY_ENTER:
-                    sair = true;
+                    destroy_all();
                     break;
 
                 case ALLEGRO_KEY_ESCAPE:
@@ -384,6 +525,126 @@ void key_enable(int KEY,char celula)
 
 }
 
+void redraw_map(){
+
+
+    al_clear_to_color(al_map_rgb(0,0,0));
+    al_draw_bitmap(mapa,0,0,0);
+    for (int i = 0;i<25;i++)
+        for (int j = 0;j<25;j++)
+            if (MAPA[i][j]=='0'){
+                mpillsdx[i][j] = j*q;
+                mpillsdy[i][j] = i*q;
+                al_draw_bitmap(pillsr,mpillsdx[i][j],mpillsdy[i][j],0);
+            }
+
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_draw_bitmap(score,xscore,yscore,0);
+    int uni, dzn, cent, aux;
+    uni = qscore%10;
+    aux = qscore%100;
+    dzn = aux/10;
+    cent = qscore/100;
+
+    //desenha un zero atrás do número para aumentar a sensação de recompensa
+    al_draw_bitmap(zero,xp4score,yp4score,0);
+
+    //contrela dos algarismos do placar
+    if (uni==0){
+        al_draw_bitmap(zero,xp3score,yp3score,0);
+    }
+    else if(uni==1){
+        al_draw_bitmap(um,xp3score,yp3score,0);
+    }
+    else if(uni==2){
+        al_draw_bitmap(dois,xp3score,yp3score,0);
+    }
+    else if(uni==3){
+        al_draw_bitmap(tres,xp3score,yp3score,0);
+    }
+    else if(uni==4){
+        al_draw_bitmap(quatro,xp3score,yp3score,0);
+    }
+    else if(uni==5){
+        al_draw_bitmap(cinco,xp3score,yp3score,0);
+    }
+    else if(uni==6){
+        al_draw_bitmap(seis,xp3score,yp3score,0);
+    }
+    else if(uni==7){
+        al_draw_bitmap(sete,xp3score,yp3score,0);
+    }
+    else if(uni==8){
+        al_draw_bitmap(oito,xp3score,yp3score,0);
+    }
+    else if (uni==9){
+        al_draw_bitmap(nove,xp3score,yp3score,0);
+    }
+
+    if(qscore>9){
+    if(dzn==0){
+        al_draw_bitmap(zero,xp2score,yp2score,0);
+    }
+    else if(dzn==1){
+        al_draw_bitmap(um,xp2score,yp2score,0);
+    }
+    else if(dzn==2){
+        al_draw_bitmap(dois,xp2score,yp2score,0);
+    }
+    else if(dzn==3){
+        al_draw_bitmap(tres,xp2score,yp2score,0);
+    }
+    else if(dzn==4){
+        al_draw_bitmap(quatro,xp2score,yp2score,0);
+    }
+    else if(dzn==5){
+        al_draw_bitmap(cinco,xp2score,yp2score,0);
+    }
+    else if(dzn==6){
+        al_draw_bitmap(seis,xp2score,yp2score,0);
+    }
+    else if(dzn==7){
+        al_draw_bitmap(sete,xp2score,yp2score,0);
+    }
+    else if(dzn==8){
+        al_draw_bitmap(oito,xp2score,yp2score,0);
+    }
+    else if (dzn==9){
+        al_draw_bitmap(nove,xp2score,yp2score,0);
+    }
+    }
+
+    if(cent==1){
+        al_draw_bitmap(um,xp1score,yp1score,0);
+    }
+    else if(cent==2){
+        al_draw_bitmap(dois,xp1score,yp1score,0);
+    }
+    else if(cent==3){
+        al_draw_bitmap(tres,xp1score,yp1score,0);
+    }
+    else if(cent==4){
+        al_draw_bitmap(quatro,xp1score,yp1score,0);
+    }
+    else if(cent==5){
+        al_draw_bitmap(cinco,xp1score,yp1score,0);
+    }
+    else if(cent==6){
+        al_draw_bitmap(seis,xp1score,yp1score,0);
+    }
+    else if(cent==7){
+        al_draw_bitmap(sete,xp1score,yp1score,0);
+    }
+    else if(cent==8){
+        al_draw_bitmap(oito,xp1score,yp1score,0);
+    }
+    else if (cent==9){
+        al_draw_bitmap(nove,xp1score,yp1score,0);
+    }
+
+    al_flip_display();
+}
+
 void redraw_pacman()
 {
     al_clear_to_color(al_map_rgb(0,0,0));
@@ -401,9 +662,11 @@ void animacao(char estado)
     {
         pacman = al_load_bitmap(caminho(false,'U'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'U'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
 
     }
@@ -411,27 +674,33 @@ void animacao(char estado)
     {
         pacman = al_load_bitmap(caminho(false,'D'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'D'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
     }
     if(estado == 'L')
     {
         pacman = al_load_bitmap(caminho(false,'L'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'L'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
     }
     if(estado== 'R')
     {
         pacman = al_load_bitmap(caminho(false,'R'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'R'));
         redraw_pacman();
+        redraw_map();
         al_rest(0.1);
     }
 }
@@ -460,6 +729,11 @@ int main(int argc, char **argv)
         {
             if(key[KEY_UP] && MAPA[i-1][j] != '1')
             {
+                if(MAPA[i][j]=='0'){
+                    qscore++;
+                    MAPA[i][j]='2';
+                }
+
                 pac_estado = 'U';// pacmanU = pacman Up
                 i--;
                 posy = i*q;
@@ -471,6 +745,11 @@ int main(int argc, char **argv)
 
             else if(key[KEY_DOWN] && MAPA[i+1][j] != '1')
             {
+                if(MAPA[i][j]=='0'){
+                    MAPA[i][j]='2';
+                    qscore++;
+                }
+
                 pac_estado = 'D';
                 i++;
                 posy = i*q;
@@ -479,6 +758,10 @@ int main(int argc, char **argv)
 
             else if(key[KEY_LEFT] && MAPA[i][j-1] != '1')
             {
+                if(MAPA[i][j]=='0'){
+                    MAPA[i][j]='2';
+                    qscore++;
+                }
                 pac_estado = 'L';
                 j--;
                 posx = j*q;
@@ -487,6 +770,10 @@ int main(int argc, char **argv)
 
             else if(key[KEY_RIGHT] && MAPA[i][j+1] != '1')
             {
+                if(MAPA[i][j]=='0'){
+                    MAPA[i][j]='2';
+                    qscore++;
+                }
                 pac_estado = 'R';
                 j++;
                 posx = j*q;
