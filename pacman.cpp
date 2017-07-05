@@ -53,7 +53,7 @@ struct GHOST{
 };
 
 ALLEGRO_DISPLAY *display = NULL; // interface
-ALLEGRO_AUDIO_STREAM *musica_tela_start = NULL; // música da tela de start
+ALLEGRO_AUDIO_STREAM *musica_tela_start = NULL; // mÃºsica da tela de start
 ALLEGRO_AUDIO_STREAM *musica_start_game = NULL; // musica do inicio do jogo
 ALLEGRO_SAMPLE *sample_tela_start = NULL; //musica da tela de start
 ALLEGRO_SAMPLE *sample_start_game = NULL;
@@ -63,7 +63,7 @@ ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_BITMAP *bouncer = NULL;
 ALLEGRO_BITMAP *mapa   = NULL; //mapa do jogo
 ALLEGRO_BITMAP *pacman   = NULL; //imagem do pacman
-ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de começar o jogo
+ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de comeÃ§ar o jogo
 ALLEGRO_BITMAP *tela_start   = NULL; //tela de start
 
 ALLEGRO_BITMAP *pillsr = NULL;
@@ -84,11 +84,11 @@ ALLEGRO_BITMAP *nove = NULL;
 
 GHOST ghost[4];
 
-int i = 15, j = 12; //posição inicial do Pacman na matriz
-int q = 20; //tamanho de cada célula no mapa
+int i = 15, j = 12; //posiÃ§Ã£o inicial do Pacman na matriz
+int q = 20; //tamanho de cada cÃ©lula no mapa
 int posy = i*q;
 int posx = j*q;
-int x_Ready= 9.4 * q, y_Ready=12 * q ; // posição da imagem READY!
+int x_Ready= 9.4 * q, y_Ready=12 * q ; // posiÃ§Ã£o da imagem READY!
 char pac_estado;
 float xscore = 1*q, yscore = 25.5*q;
 
@@ -117,7 +117,7 @@ void destroy_all()
 
 
 int inicializa() {
-    //iniciando bibliotecas, addons e arquivos necessários para rodar o pacman
+    //iniciando bibliotecas, addons e arquivos necessÃ¡rios para rodar o pacman
     if(!al_init())
     {
         cout << "Falha ao carregar Allegro" << endl;
@@ -216,7 +216,7 @@ int inicializa() {
     }
     al_draw_bitmap(pillsr,0,0,0);
 
-    score = al_load_bitmap("img/maps/Score.tga");
+    score = al_load_bitmap("img/maps/Score.bmp");
     if(!score)
     {
         cout << "Falha ao carregar score" << endl;
@@ -388,7 +388,7 @@ void start()
 void draw_tela_start()
 {
     //Inicio do jogo
-    //Enquanto a música de intro não acabar não inicia o jogo
+    //Enquanto a mÃºsica de intro nÃ£o acabar nÃ£o inicia o jogo
     bool sair=false;
     bool animacao = true;
     while(!sair)
@@ -444,7 +444,7 @@ void draw_tela_start()
 char * caminho(bool munch,char key)
 {
     /*
-        muda a imagem de acordo com a direção que o pacman está andando:
+        muda a imagem de acordo com a direÃ§Ã£o que o pacman estÃ¡ andando:
         para cima  'UP' = pacmanU
         para baixo 'DOWN' = pacmanD
         para direita 'RIGHT' = pacmanR
@@ -543,7 +543,7 @@ void redraw_map(){
     dzn = aux/10;
     cent = qscore/100;
 
-    //desenha un zero atrás do número para aumentar a sensação de recompensa
+    //desenha un zero atrÃ¡s do nÃºmero para aumentar a sensaÃ§Ã£o de recompensa
     al_draw_bitmap(zero,xp4score,yp4score,0);
 
     //contrela dos algarismos do placar
