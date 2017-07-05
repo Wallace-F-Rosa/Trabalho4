@@ -234,15 +234,20 @@
 
 1362338300 c:\allegro-5.0.10-mingw-4.7.0\include\allegro5\allegro_image.h
 
-1498177732 source:c:\users\samsung\desktop\ufv\inf131\trabalho4\trabalho4\teste.cpp
+1499200417 source:c:\users\samsung\desktop\ufv\inf131\trabalho4\trabalho4\teste.cpp
+	<allegro5/allegro.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+	"allegro5/allegro_image.h"
 	<iostream>
+	<cstring>
 
 1498401605 source:c:\users\samsung\desktop\ufv\inf131\trabalho4\trabalho4 22062017201225\pacman.cpp
 	<allegro5/allegro.h>
 	"allegro5/allegro_image.h"
 	<iostream>
 
-1498513126 source:c:\users\samsung\desktop\ufv\inf131\trabalho4\trabalho4\pacman.cpp
+1499263498 source:c:\users\samsung\desktop\ufv\inf131\trabalho4\trabalho4\pacman.cpp
 	<allegro5/allegro.h>
 	<allegro5/allegro_audio.h>
 	<allegro5/allegro_acodec.h>
@@ -256,4 +261,20 @@
 1362338300 c:\allegro-5.0.10-mingw-4.7.0\include\allegro5\allegro_acodec.h
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
+
+1499272223 source:c:\users\samsung\desktop\ufv\inf110\trabalho4\trabalho4\pacman.cpp
+	<allegro5/allegro.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+	"allegro5/allegro_image.h"
+	<iostream>
+	<cstring>
+
+1499200417 source:c:\users\samsung\desktop\ufv\inf110\trabalho4\trabalho4\teste.cpp
+	<allegro5/allegro.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+	"allegro5/allegro_image.h"
+	<iostream>
+	<cstring>
 
