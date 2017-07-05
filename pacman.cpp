@@ -207,7 +207,7 @@ int inicializa() {
     }
     al_draw_bitmap(ready,x_Ready,y_Ready,0);
 
-    pillsr = al_load_bitmap("img/maps/pillsr.bmp");
+    pillsr = al_load_bitmap("img/maps/pillsr.tga");
     if(!pillsr)
     {
         cout << "Falla ao carregar pills" << endl;
@@ -216,7 +216,7 @@ int inicializa() {
     }
     al_draw_bitmap(pillsr,0,0,0);
 
-    score = al_load_bitmap("img/maps/Score.bmp");
+    score = al_load_bitmap("img/maps/Score.tga");
     if(!score)
     {
         cout << "Falha ao carregar score" << endl;
@@ -379,9 +379,6 @@ void start()
                 mpillsdy[i][j] = i*q;
                 al_draw_bitmap(pillsr,mpillsdx[i][j],mpillsdy[i][j],0);
             }
-    for (int i = 0;i<25;i++)
-        for (int j=0;j<25;j++)
-            if (MAPA[i][j]=='0')
 
     al_draw_bitmap(pacman,posx,posy,0);
     al_flip_display();
@@ -650,7 +647,6 @@ void redraw_pacman()
     al_clear_to_color(al_map_rgb(0,0,0));
     al_draw_bitmap(mapa,0,0,0);
     al_draw_bitmap(pacman,posx,posy,0);
-    al_flip_display();
 
 }
 
@@ -827,7 +823,7 @@ int main(int argc, char **argv)
                     break;
 
                 case ALLEGRO_KEY_ESCAPE:
-                    sair = true;
+                    destroy_all();
                     break;
             }
 
