@@ -733,20 +733,20 @@ void redraw_pacman()
     if(pac_estado == 'R')
     {
 
-        if(posy == 28  && i == 10)
+        if(j == 25  && i == 13)
         {
-            posx = 0*q;
+            j = 0;
+            posx = j*q;
             posy = 13*q;
         }
-
-
     }
 
     if(pac_estado == 'L')
     {
-        if(j == 3 && i == 10)
+        if(j == -1 && i == 13)
         {
-            posx = 25 * q;
+            j = 25;
+            posx = j * q;
             posy = 13*q;
         }
 
