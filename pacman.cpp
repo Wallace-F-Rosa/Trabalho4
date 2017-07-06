@@ -137,15 +137,13 @@ void destroy_all()
 
     al_destroy_sample(sample_game_over);
     al_destroy_sample(sample_ghosts);
-
-    if(sample_munch)
-    {
-        al_destroy_sample(sample_munch);
-        al_destroy_sample(sample_victory);
-    }
-
+    al_destroy_sample(sample_munch);
+    al_destroy_sample(sample_victory);
     al_destroy_sample(sample_start_game);
     al_destroy_sample(sample_tela_start);
+    al_destroy_bitmap(ready);
+    al_destroy_bitmap(tela_game_over);
+    al_destroy_bitmap(tela_start);
     al_destroy_bitmap(bouncer);
     al_destroy_bitmap(pacman);
     al_destroy_bitmap(mapa);
@@ -867,6 +865,9 @@ void end_game()
     al_destroy_bitmap(bouncer);
     al_destroy_bitmap(pacman);
     al_destroy_bitmap(mapa);
+    al_destroy_bitmap(ready);
+    al_destroy_bitmap(tela_game_over);
+    al_destroy_bitmap(tela_start);
     al_destroy_bitmap(GBlue);
     al_destroy_bitmap(GOrng);
     al_destroy_bitmap(GRed);
@@ -1255,6 +1256,8 @@ int main(int argc, char **argv)
 
     //da inicio ao jogo
     start();
+
+
 
     bool sair = false;
 
