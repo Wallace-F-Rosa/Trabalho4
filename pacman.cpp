@@ -59,6 +59,7 @@ ALLEGRO_SAMPLE *sample_start_game = NULL; // musica do inicío do jogo
 ALLEGRO_SAMPLE *sample_victory = NULL; // musica de vitória
 ALLEGRO_SAMPLE *sample_munch = NULL; // som do pacman comendo a pilula
 ALLEGRO_SAMPLE *sample_ghosts = NULL; // som do pacman comendo a pilula
+ALLEGRO_SAMPLE *sample_game_over = NULL; // som do pacman comendo a pilula
 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
@@ -71,6 +72,7 @@ ALLEGRO_BITMAP *GPink   = NULL;
 ALLEGRO_BITMAP *GRed   = NULL;
 ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de começar o jogo
 ALLEGRO_BITMAP *tela_start   = NULL; //tela de start
+ALLEGRO_BITMAP *tela_game_over   = NULL; //desenha a imagem game_over
 
 ALLEGRO_BITMAP *pillsr = NULL;
 ALLEGRO_BITMAP *score = NULL;
@@ -95,6 +97,7 @@ int q = 20; //tamanho de cada célula no mapa
 int posy = i*q;
 int posx = j*q;
 int x_Ready= 9.4 * q, y_Ready=12 * q ; // posição da imagem READY!
+int x_game_over= 6.4 * q, y_game_over=12 * q ; // posição da imagem READY!
 char pac_estado;
 float xscore = 1*q, yscore = 25.5*q;
 
@@ -132,9 +135,24 @@ bool sair = false;
 void destroy_all()
 {
 
+    al_destroy_sample(sample_game_over);
+    al_destroy_sample(sample_ghosts);
+
+    if(sample_munch)
+    {
+        al_destroy_sample(sample_munch);
+        al_destroy_sample(sample_victory);
+    }
+
     al_destroy_sample(sample_start_game);
     al_destroy_sample(sample_tela_start);
     al_destroy_bitmap(bouncer);
+    al_destroy_bitmap(pacman);
+    al_destroy_bitmap(mapa);
+    al_destroy_bitmap(GBlue);
+    al_destroy_bitmap(GOrng);
+    al_destroy_bitmap(GRed);
+    al_destroy_bitmap(GPink);
     al_destroy_timer(timer);
     al_destroy_display(display);
     al_destroy_event_queue(event_queue);
@@ -171,6 +189,8 @@ int inicializa() {
     sample_munch = al_load_sample( "sound/chomp.wav" );
     sample_victory = al_load_sample( "sound/intermission.wav" );
     sample_ghosts = al_load_sample( "sound/ghost.wav" );
+    sample_game_over = al_load_sample( "sound/death.wav" );
+
 
     if(!al_install_keyboard())
     {
@@ -216,6 +236,15 @@ int inicializa() {
         return 0;
     }
     al_draw_bitmap(tela_start,0,0,0);
+
+    tela_game_over = al_load_bitmap("img/maps/game_over.bmp");
+    if(!tela_start)
+    {
+        cout << "Falha ao carregar a tela de game over!" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(tela_game_over,x_game_over,y_game_over,0);
 
     pacman = al_load_bitmap("img/pacman/pacman.tga");
     if(!pacman)
@@ -830,6 +859,124 @@ void victory()
 
 }
 
+void end_game()
+{
+    al_destroy_sample(sample_game_over);
+    al_destroy_sample(sample_start_game);
+    al_destroy_sample(sample_tela_start);
+    al_destroy_bitmap(bouncer);
+    al_destroy_bitmap(pacman);
+    al_destroy_bitmap(mapa);
+    al_destroy_bitmap(GBlue);
+    al_destroy_bitmap(GOrng);
+    al_destroy_bitmap(GRed);
+    al_destroy_bitmap(GPink);
+    al_destroy_timer(timer);
+    al_destroy_display(display);
+    al_destroy_event_queue(event_queue);
+
+
+}
+
+void redraw_game_over()
+{
+    al_clear_to_color(al_map_rgb(0,0,0));
+    al_draw_bitmap(mapa,0,0,0);
+    al_draw_bitmap(tela_game_over,x_game_over,y_game_over,0);
+}
+
+void game_over()
+{
+    //interrpmpe os audios que estão sendo tocados
+    al_destroy_sample(sample_ghosts);
+    al_destroy_sample(sample_munch);
+
+
+    //desenha animação de morte do pacman
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst1.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+
+    al_rest(1);
+
+    //poe a musica da animação de morte para tocar
+    al_play_sample(sample_game_over, 1.0, 0.0, 1.05, ALLEGRO_PLAYMODE_ONCE, NULL);
+
+
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst2.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst3.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst4.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst5.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst6.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst7.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst8.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst9.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst10.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst11.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.2);
+
+    redraw_game_over();
+    pacman = al_load_bitmap("img/pacman/death/pacdeadst12.tga");
+    al_draw_bitmap(pacman,posx,posy,0);
+    al_flip_display();
+    al_rest(0.1);
+
+    redraw_game_over();
+    al_flip_display();
+    al_rest(4);
+    end_game();
+}
+
 void redraw_placar()
 {
 
@@ -1119,6 +1266,29 @@ int main(int argc, char **argv)
 
         if(ev.type == ALLEGRO_EVENT_TIMER)
         {
+            if(GOposx == posx && GOposy == posy)
+            {
+
+                game_over();
+            }
+            else if(GBposx == posx && GBposy == posy)
+                {
+
+
+                    game_over();
+                }
+            else if(GRposx == posx && GRposy == posy)
+                {
+
+
+                    game_over();
+                }
+            else if(GPposx == posx && GPposy == posy)
+                {
+
+                    game_over();
+                }
+
             if(key[KEY_UP] && MAPA[i-1][j] != '1')
             {
                 if(MAPA[i][j]=='0'){
@@ -1170,6 +1340,31 @@ int main(int argc, char **argv)
                 j++;
                 posx = j*q;
             }
+
+            if(GOposx == posx && GOposy == posy)
+            {
+
+                game_over();
+            }
+            else if(GBposx == posx && GBposy == posy)
+                {
+
+
+                    game_over();
+                }
+            else if(GRposx == posx && GRposy == posy)
+                {
+
+
+                    game_over();
+                }
+            else if(GPposx == posx && GPposy == posy)
+                {
+
+                    game_over();
+                }
+
+
 
             GBdir = GBmove(GBi, GBj);
             if(GBdir == 'U' && MAPA[GBi-1][GBj] != '1')
@@ -1315,6 +1510,8 @@ int main(int argc, char **argv)
                 GRposx = GRj*q;
             }
 
+
+
             redraw = true;
         }
         else if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
@@ -1376,7 +1573,11 @@ int main(int argc, char **argv)
             if(MAPA[i][j] != '0')
                 al_play_sample(sample_ghosts, 1.0, 0.0, 1.05, ALLEGRO_PLAYMODE_ONCE, NULL);
 
+
             animacao(pac_estado);
+
+
+
         }
     }
 
