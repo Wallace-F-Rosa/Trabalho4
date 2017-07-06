@@ -4,6 +4,7 @@
 #include "allegro5/allegro_image.h"
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
@@ -20,32 +21,37 @@ enum MYKEYS
 char MAPA[26][26] =
 {
     "1111111111111111111111111",
-    "1000000001111111000000001",
-    "1011111101111111011111101",
-    "1011111100000000011111101",
-    "1000000001111111000000001",
-    "1110111101111111011110111",
-    "1000111100001000011110001",
-    "1010111111101011111110101",
-    "1010000111001001110000101",
-    "1011110111011101110111101",
-    "1011110100000000010111101",
-    "1000110001115111000110001",
-    "1110111101155511011110111",
-    "0000000001155511000000000",
-    "1110111101111111011110111",
-    "1010100000007000000010101",
-    "1000001111110111111000001",
-    "1111101110000000111011111",
-    "1111101110111110111011111",
-    "1000000000000000000000001",
-    "1011101111110111111011101",
-    "1000001111110111111000001",
-    "1011100000010100000011101",
-    "1000001111000001111000001",
+    "1000000001111111000000001", // 16
+    "1011111101111111011111101", // 4
+    "1011111100000000011111101", // 11
+    "1000000001111111000000001", // 16
+    "1110111101111111011110111", // 4
+    "1000111100001000011110001", // 14
+    "1010111111101011111110101", // 6
+    "1010000111001001110000101", // 14
+    "1011110111011101110111101", // 6
+    "1011110100000000010111101", // 13
+    "1000110001115111000110001", //12
+    "1110111101155511011110111", // 4
+    "0000000001155511000000000", // 18
+    "1110111101111111011110111", // 4
+    "1010100000007000000010101", // 16
+    "1000001111110111111000001", // 11
+    "1111101110000000111011111", // 9
+    "1111101110111110111011111", // 4
+    "1000000000000000000000001", // 23
+    "1011101111110111111011101", // 5
+    "1000001111110111111000001", // 11
+    "1011100000010100000011101", // 15
+    "1000001111000001111000001", // 15
     "1111111111111111111111111",
 };
 
+struct GHOST{
+    ALLEGRO_BITMAP *ghost   = NULL;
+    int posx;
+    int posy;
+};
 
 ALLEGRO_DISPLAY *display = NULL; // interface
 ALLEGRO_SAMPLE *sample_tela_start = NULL; //musica da tela de start
@@ -60,6 +66,9 @@ ALLEGRO_BITMAP *bouncer = NULL;
 ALLEGRO_BITMAP *mapa   = NULL; //mapa do jogo
 ALLEGRO_BITMAP *pacman   = NULL; //imagem do pacman
 ALLEGRO_BITMAP *GBlue   = NULL;
+ALLEGRO_BITMAP *GOrng   = NULL;
+ALLEGRO_BITMAP *GPink   = NULL;
+ALLEGRO_BITMAP *GRed   = NULL;
 ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de começar o jogo
 ALLEGRO_BITMAP *tela_start   = NULL; //tela de start
 
@@ -78,19 +87,36 @@ ALLEGRO_BITMAP *nove = NULL;
 
 
 
+
+GHOST ghost[4];
+
 int i = 15, j = 12; //posição inicial do Pacman na matriz
 int q = 20; //tamanho de cada célula no mapa
 int posy = i*q;
 int posx = j*q;
 int x_Ready= 9.4 * q, y_Ready=12 * q ; // posição da imagem READY!
 char pac_estado;
-int vidas=3;
 float xscore = 1*q, yscore = 25.5*q;
 
 int GBi = 12, GBj = 12;
 int GBposy = GBi*q;
 int GBposx = GBj*q;
 char GBdir;
+
+int GOi = 12, GOj = 12;
+int GOposy = GOi*q;
+int GOposx = GOj*q;
+char GOdir;
+
+int GPi = 12, GPj = 12;
+int GPposy = GPi*q;
+int GPposx = GPj*q;
+char GPdir;
+
+int GRi = 12, GRj = 12;
+int GRposy = GRi*q;
+int GRposx = GRj*q;
+char GRdir;
 
 float mpillsdy[25][25] = {0};
 float mpillsdx[25][25] = {0};
@@ -208,6 +234,33 @@ int inicializa() {
         return 0;
     }
     al_draw_bitmap(GBlue,GBposx,GBposy,0);
+
+    GOrng = al_load_bitmap("img/ghosts/orange/orangeU.tga");
+    if(!GOrng)
+    {
+        cout << "Falha ao carregar o GOrng!" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(GOrng,GOposx,GOposy,0);
+
+    GPink = al_load_bitmap("img/ghosts/pink/pinkU.tga");
+    if(!GPink)
+    {
+        cout << "Falha ao carregar o GPink!" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(GPink,GPposx,GPposy,0);
+
+    GRed = al_load_bitmap("img/ghosts/red/redU.tga");
+    if(!GRed)
+    {
+        cout << "Falha ao carregar o GRed!" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(GRed,GRposx,GRposy,0);
 
     ready = al_load_bitmap("img/maps/ready.bmp");
     if(!ready)
@@ -354,6 +407,9 @@ void start()
     al_draw_bitmap(mapa,0,0,0);
     al_draw_bitmap(pacman,posx,posy,0);
     al_draw_bitmap(GBlue,GBposx,GBposy,0);
+    al_draw_bitmap(GOrng,GOposx,GOposy,0);
+    al_draw_bitmap(GPink,GPposx,GPposy,0);
+    al_draw_bitmap(GRed,GRposx,GRposy,0);
     al_draw_bitmap(ready,x_Ready,y_Ready,0);
     al_flip_display();
     al_rest(4.0);
@@ -445,6 +501,60 @@ char * caminhoGB(char GBdir)
 
 }
 
+char * caminhoGO(char GOdir)
+{
+    char * arquivo = new char[23];
+    {
+        if(GOdir == 'U')
+            strcpy(arquivo,"img/ghosts/orange/orangeU.tga");
+        if(GOdir == 'D')
+            strcpy(arquivo,"img/ghosts/orange/orangeD.tga");
+        if(GOdir == 'L')
+            strcpy(arquivo,"img/ghosts/orange/orangeL.tga");
+        if(GOdir == 'R')
+            strcpy(arquivo,"img/ghosts/orange/orangeR.tga");
+    }
+
+    return arquivo;
+
+}
+
+char * caminhoGP(char GPdir)
+{
+    char * arquivo = new char[23];
+    {
+        if(GPdir == 'U')
+            strcpy(arquivo,"img/ghosts/pink/pinkU.tga");
+        if(GPdir == 'D')
+            strcpy(arquivo,"img/ghosts/pink/pinkD.tga");
+        if(GPdir == 'L')
+            strcpy(arquivo,"img/ghosts/pink/pinkL.tga");
+        if(GPdir == 'R')
+            strcpy(arquivo,"img/ghosts/pink/pinkR.tga");
+    }
+
+    return arquivo;
+
+}
+
+char * caminhoGR(char GRdir)
+{
+    char * arquivo = new char[23];
+    {
+        if(GRdir == 'U')
+            strcpy(arquivo,"img/ghosts/red/redU.tga");
+        if(GRdir == 'D')
+            strcpy(arquivo,"img/ghosts/red/redD.tga");
+        if(GRdir == 'L')
+            strcpy(arquivo,"img/ghosts/red/redL.tga");
+        if(GRdir == 'R')
+            strcpy(arquivo,"img/ghosts/red/redR.tga");
+    }
+
+    return arquivo;
+
+}
+
 char * caminho(bool munch,char key)
 {
     /*
@@ -526,12 +636,177 @@ void key_enable(int KEY,char celula)
 
 }
 
+char GBmove(int GBposx, int GBposy)
+{
+    int counter = 0;
+    bool valid = true;
+    char opt[4] = {'D', 'U', 'R', 'L'};
+    int rd;
+
+    if(MAPA[GBposx+1][GBposy] != '1')
+        counter++;
+    if(MAPA[GBposx-1][GBposy] != '1')
+        counter++;
+    if(MAPA[GBposx][GBposy+1] != '1')
+        counter++;
+    if(MAPA[GBposx][GBposy-1] != '1')
+        counter++;
+
+    if(MAPA[GBposx][GBposy] == '5')
+        return 'U';
+
+    if(counter > 1)
+    {
+        while(valid)
+        {
+            rd = rand()%4;
+            if(rd == 0)
+                if(MAPA[GBposx+1][GBposy] != '1')
+                    return 'D';
+            if(rd == 1)
+                if(MAPA[GBposx-1][GBposy] != '1')
+                    return 'U';
+            if(rd == 2)
+                if(MAPA[GBposx][GBposy+1] != '1')
+                    return 'R';
+            if(rd == 3)
+                if(MAPA[GBposx][GBposy-1] != '1')
+                    return 'L';
+        }
+    }
+
+}
+
+char GOmove(int GOposx, int GOposy)
+{
+    int counter = 0;
+    bool valid = true;
+    char opt[4] = {'D', 'U', 'R', 'L'};
+    int rd;
+
+    if(MAPA[GOposx+1][GOposy] != '1')
+        counter++;
+    if(MAPA[GOposx-1][GOposy] != '1')
+        counter++;
+    if(MAPA[GOposx][GOposy+1] != '1')
+        counter++;
+    if(MAPA[GOposx][GOposy-1] != '1')
+        counter++;
+
+    if(MAPA[GOposx][GOposy] == '5')
+        return 'U';
+
+    if(counter > 1)
+    {
+        while(valid)
+        {
+            rd = rand()%4;
+            if(rd == 0)
+                if(MAPA[GOposx+1][GOposy] != '1')
+                    return 'D';
+            if(rd == 1)
+                if(MAPA[GOposx-1][GOposy] != '1')
+                    return 'U';
+            if(rd == 2)
+                if(MAPA[GOposx][GOposy+1] != '1')
+                    return 'R';
+            if(rd == 3)
+                if(MAPA[GOposx][GOposy-1] != '1')
+                    return 'L';
+        }
+    }
+
+}
+
+char GPmove(int GPposx, int GPposy)
+{
+    int counter = 0;
+    bool valid = true;
+    char opt[4] = {'D', 'U', 'R', 'L'};
+    int rd;
+
+    if(MAPA[GPposx+1][GPposy] != '1')
+        counter++;
+    if(MAPA[GPposx-1][GPposy] != '1')
+        counter++;
+    if(MAPA[GPposx][GPposy+1] != '1')
+        counter++;
+    if(MAPA[GPposx][GPposy-1] != '1')
+        counter++;
+
+    if(MAPA[GPposx][GPposy] == '5')
+        return 'U';
+
+    if(counter > 1)
+    {
+        while(valid)
+        {
+            rd = rand()%4;
+            if(rd == 0)
+                if(MAPA[GPposx+1][GPposy] != '1')
+                    return 'D';
+            if(rd == 1)
+                if(MAPA[GPposx-1][GPposy] != '1')
+                    return 'U';
+            if(rd == 2)
+                if(MAPA[GPposx][GPposy+1] != '1')
+                    return 'R';
+            if(rd == 3)
+                if(MAPA[GPposx][GPposy-1] != '1')
+                    return 'L';
+        }
+    }
+
+}
+
+char GRmove(int GRposx, int GRposy)
+{
+    int counter = 0;
+    bool valid = true;
+    char opt[4] = {'D', 'U', 'R', 'L'};
+    int rd;
+
+    if(MAPA[GRposx+1][GRposy] != '1')
+        counter++;
+    if(MAPA[GRposx-1][GRposy] != '1')
+        counter++;
+    if(MAPA[GRposx][GRposy+1] != '1')
+        counter++;
+    if(MAPA[GRposx][GRposy-1] != '1')
+        counter++;
+
+    if(MAPA[GRposx][GRposy] == '5')
+        return 'U';
+
+    if(counter > 1)
+    {
+        while(valid)
+        {
+            rd = rand()%4;
+            if(rd == 0)
+                if(MAPA[GRposx+1][GRposy] != '1')
+                    return 'D';
+            if(rd == 1)
+                if(MAPA[GRposx-1][GRposy] != '1')
+                    return 'U';
+            if(rd == 2)
+                if(MAPA[GRposx][GRposy+1] != '1')
+                    return 'R';
+            if(rd == 3)
+                if(MAPA[GRposx][GRposy-1] != '1')
+                    return 'L';
+        }
+    }
+
+}
+
 void victory()
 {
     bool animacao = true;
 
     pacman = al_load_bitmap("img/pacman/pacman.tga");
 
+    al_rest(1);
     for(int w = 0; w < 50; w++ )
     {
         al_play_sample(sample_victory, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
@@ -546,7 +821,7 @@ void victory()
         al_draw_bitmap(mapa,0,0,0);
         al_draw_bitmap(pacman,posx,posy,0);
         al_flip_display();
-        al_rest(0.09);
+        al_rest(0.08);
         animacao = !animacao;
     }
 
@@ -555,34 +830,14 @@ void victory()
 
 }
 
-void game_over(int vidas)
-{
-    if(vidas <= 0)
-    {
-
-        al_clear_to_color(al_map_rgb(0,0,0));
-        al_draw_bitmap(mapa,0,0,0);
-        pacman = al_load_bitmap("img/pacman/death/pacdeadst1");
-        al_draw_bitmap(pacman,posx,posy,0);
-        al_flip_display();
-        al_rest(0.1);
-        pacman = al_load_bitmap("img/pacman/death/pacdeadst1");
-        al_draw_bitmap(pacman,posx,posy,0);
-        al_flip_display();
-        al_rest(0.1);
-
-
-    }
-
-
-
-}
-
-
 void redraw_placar()
 {
 
         al_draw_bitmap(pacman,posx,posy,0);
+        al_draw_bitmap(GBlue,GBposx,GBposy,0);
+        al_draw_bitmap(GOrng,GOposx,GOposy,0);
+        al_draw_bitmap(GPink,GPposx,GPposy,0);
+        al_draw_bitmap(GRed,GRposx,GRposy,0);
         al_draw_bitmap(score,xscore,yscore,0);
         int uni, dzn, cent, aux;
         uni = qscore%10;
@@ -687,15 +942,13 @@ void redraw_placar()
         }
 
         al_flip_display();
-
-
 }
+
 
 
 void redraw_map(){
 
-
-    if(qscore >= 250)
+    if(qscore >= 252)
     {
         redraw_placar();
         victory();
@@ -710,7 +963,7 @@ void redraw_map(){
                 {
                     if(posx == mpillsdx[i][j] && posy == mpillsdy[i][j])
                     {
-                        al_play_sample(sample_munch, 1.0, 0.0, 1.06, ALLEGRO_PLAYMODE_ONCE, NULL);
+                        al_play_sample(sample_munch, 1.0, 0.0, 1.05, ALLEGRO_PLAYMODE_ONCE, NULL);
                         //al_draw_bitmap(pillsr,mpillsdx[i][j],mpillsdy[i][j],0);
                         mpillsdx[i][j] = 1200 * q;
                         mpillsdy[i][j] = 1200 * q;
@@ -722,6 +975,7 @@ void redraw_map(){
                 }
 
         redraw_placar();
+
     }
 }
 
@@ -755,12 +1009,9 @@ void redraw_pacman()
 
     al_draw_bitmap(pacman,posx,posy,0);
     al_draw_bitmap(GBlue,GBposx,GBposy,0);
-
-}
-
-void redraw_Gblue()
-{
-    //al_draw_bitmap(GBlue,GBposx,GBposy,0);
+    al_draw_bitmap(GOrng,GOposx,GOposy,0);
+    al_draw_bitmap(GPink,GPposx,GPposy,0);
+    al_draw_bitmap(GRed,GRposx,GRposy,0);
 
 }
 
@@ -769,13 +1020,19 @@ void animacao(char estado)
     if(estado == 'U')
     {
         pacman = al_load_bitmap(caminho(false,'U'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'U'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
 
@@ -783,45 +1040,61 @@ void animacao(char estado)
     if(estado == 'D')
     {
         pacman = al_load_bitmap(caminho(false,'D'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'D'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
     }
     if(estado == 'L')
     {
         pacman = al_load_bitmap(caminho(false,'L'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'L'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
     }
     if(estado== 'R')
     {
         pacman = al_load_bitmap(caminho(false,'R'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'R'));
+        GBlue = al_load_bitmap(caminhoGB(GBdir));
+        GOrng = al_load_bitmap(caminhoGO(GOdir));
+        GPink = al_load_bitmap(caminhoGP(GPdir));
+        GRed = al_load_bitmap(caminhoGR(GRdir));
         redraw_pacman();
-        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
     }
 }
-
-
 
 int main(int argc, char **argv)
 {
@@ -836,14 +1109,10 @@ int main(int argc, char **argv)
     //da inicio ao jogo
     start();
 
-
-
     bool sair = false;
 
     while(!sair)
     {
-
-
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
@@ -885,10 +1154,8 @@ int main(int argc, char **argv)
                     MAPA[i][j]='2';
                     qscore++;
                 }
-
                 pac_estado = 'L';
                 j--;
-
                 posx = j*q;
 
             }
@@ -899,50 +1166,153 @@ int main(int argc, char **argv)
                     MAPA[i][j]='2';
                     qscore++;
                 }
-
-
-                    pac_estado = 'R';
-                    j++;
-
-
+                pac_estado = 'R';
+                j++;
                 posx = j*q;
-
             }
 
-            GBdir = 'U';
-            if(GBdir == 'U' && MAPA[i-1][j] != '1')
+            GBdir = GBmove(GBi, GBj);
+            if(GBdir == 'U' && MAPA[GBi-1][GBj] != '1')
             {
-                /*GBdir = 'U';// pacmanU = pacman Up
-                i--;
-                GBposy = i*q;*/
+                GBdir = 'U';// pacmanU = pacman Up
+                GBi--;
+                GBposy = GBi*q;
 
 
 
                 //animacao(pac_estado,posx,posy,i,j);
             }
 
-            else if(GBdir == 'D' && MAPA[i+1][j] != '1')
+            else if(GBdir == 'D' && MAPA[GBi+1][GBj] != '1')
             {
 
                 GBdir = 'D';
-                i++;
-                GBposy = i*q;
+                GBi++;
+                GBposy = GBi*q;
 
             }
 
-            else if(GBdir == 'L' && MAPA[i][j-1] != '1')
+            else if(GBdir == 'L' && MAPA[GBi][GBj-1] != '1')
             {
                 GBdir = 'L';
-                j--;
-                GBposx = j*q;
+                GBj--;
+                GBposx = GBj*q;
 
             }
 
-            else if(GBdir == 'R' && MAPA[i][j+1] != '1')
+            else if(GBdir == 'R' && MAPA[GBi][GBj+1] != '1')
             {
                 GBdir = 'R';
-                j++;
-                GBposx = j*q;
+                GBj++;
+                GBposx = GBj*q;
+            }
+
+            GOdir = GOmove(GOi, GOj);
+            if(GOdir == 'U' && MAPA[GOi-1][GOj] != '1')
+            {
+                GOdir = 'U';// pacmanU = pacman Up
+                GOi--;
+                GOposy = GOi*q;
+
+
+
+                //animacao(pac_estado,posx,posy,i,j);
+            }
+
+            else if(GOdir == 'D' && MAPA[GOi+1][GOj] != '1')
+            {
+
+                GOdir = 'D';
+                GOi++;
+                GOposy = GOi*q;
+
+            }
+
+            else if(GOdir == 'L' && MAPA[GOi][GOj-1] != '1')
+            {
+                GOdir = 'L';
+                GOj--;
+                GOposx = GOj*q;
+
+            }
+
+            else if(GOdir == 'R' && MAPA[GOi][GOj+1] != '1')
+            {
+                GOdir = 'R';
+                GOj++;
+                GOposx = GOj*q;
+            }
+
+            GPdir = GPmove(GPi, GPj);
+            if(GPdir == 'U' && MAPA[GPi-1][GPj] != '1')
+            {
+                GPdir = 'U';// pacmanU = pacman Up
+                GPi--;
+                GPposy = GPi*q;
+
+
+
+                //animacao(pac_estado,posx,posy,i,j);
+            }
+
+            else if(GPdir == 'D' && MAPA[GPi+1][GPj] != '1')
+            {
+
+                GPdir = 'D';
+                GPi++;
+                GPposy = GPi*q;
+
+            }
+
+            else if(GPdir == 'L' && MAPA[GPi][GPj-1] != '1')
+            {
+                GPdir = 'L';
+                GPj--;
+                GPposx = GPj*q;
+
+            }
+
+            else if(GPdir == 'R' && MAPA[GPi][GPj+1] != '1')
+            {
+                GPdir = 'R';
+                GPj++;
+                GPposx = GPj*q;
+            }
+
+            GRdir = GRmove(GRi, GRj);
+            if(GRdir == 'U' && MAPA[GRi-1][GRj] != '1')
+            {
+                GRdir = 'U';// pacmanU = pacman Up
+                GRi--;
+                GRposy = GRi*q;
+
+
+
+                //animacao(pac_estado,posx,posy,i,j);
+            }
+
+            else if(GRdir == 'D' && MAPA[GRi+1][GRj] != '1')
+            {
+
+                GRdir = 'D';
+                GRi++;
+                GRposy = GRi*q;
+
+            }
+
+            else if(GRdir == 'L' && MAPA[GRi][GRj-1] != '1')
+            {
+                GRdir = 'L';
+                GRj--;
+                GRposx = GRj*q;
+
+            }
+
+            else if(GRdir == 'R' && MAPA[GRi][GRj+1] != '1')
+            {
+                GRdir = 'R';
+                GRj++;
+                GRposx = GRj*q;
             }
 
             redraw = true;
@@ -1003,10 +1373,8 @@ int main(int argc, char **argv)
         {
             redraw = false;
 
-
             if(MAPA[i][j] != '0')
                 al_play_sample(sample_ghosts, 1.0, 0.0, 1.05, ALLEGRO_PLAYMODE_ONCE, NULL);
-
 
             animacao(pac_estado);
         }
