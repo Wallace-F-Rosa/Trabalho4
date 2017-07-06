@@ -30,11 +30,11 @@ char MAPA[26][26] =
     "1010000111001001110000101",
     "1011110111011101110111101",
     "1011110100000000010111101",
-    "1000110001111111000110001",
+    "1000110001115111000110001",
     "1110111101155511011110111",
-    "1000000001155511000000001",
-    "1011111101111111011111101",
-    "1011100000000000000011101",
+    "0000000001155511000000000",
+    "1110111101111111011110111",
+    "1010100000007000000010101",
     "1000001111110111111000001",
     "1111101110000000111011111",
     "1111101110111110111011111",
@@ -46,24 +46,21 @@ char MAPA[26][26] =
     "1111111111111111111111111",
 };
 
-struct GHOST{
-    ALLEGRO_BITMAP *ghost   = NULL;
-    int posx;
-    int posy;
-};
 
 ALLEGRO_DISPLAY *display = NULL; // interface
-ALLEGRO_AUDIO_STREAM *musica_tela_start = NULL; // mÃºsica da tela de start
-ALLEGRO_AUDIO_STREAM *musica_start_game = NULL; // musica do inicio do jogo
 ALLEGRO_SAMPLE *sample_tela_start = NULL; //musica da tela de start
-ALLEGRO_SAMPLE *sample_start_game = NULL;
+ALLEGRO_SAMPLE *sample_start_game = NULL; // musica do inicío do jogo
+ALLEGRO_SAMPLE *sample_victory = NULL; // musica de vitória
+ALLEGRO_SAMPLE *sample_munch = NULL; // som do pacman comendo a pilula
+ALLEGRO_SAMPLE *sample_ghosts = NULL; // som do pacman comendo a pilula
 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_BITMAP *bouncer = NULL;
 ALLEGRO_BITMAP *mapa   = NULL; //mapa do jogo
 ALLEGRO_BITMAP *pacman   = NULL; //imagem do pacman
-ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de comeÃ§ar o jogo
+ALLEGRO_BITMAP *GBlue   = NULL;
+ALLEGRO_BITMAP *ready   = NULL; // imagem READY antes de começar o jogo
 ALLEGRO_BITMAP *tela_start   = NULL; //tela de start
 
 ALLEGRO_BITMAP *pillsr = NULL;
@@ -81,19 +78,22 @@ ALLEGRO_BITMAP *nove = NULL;
 
 
 
-
-GHOST ghost[4];
-
-int i = 15, j = 12; //posiÃ§Ã£o inicial do Pacman na matriz
-int q = 20; //tamanho de cada cÃ©lula no mapa
+int i = 15, j = 12; //posição inicial do Pacman na matriz
+int q = 20; //tamanho de cada célula no mapa
 int posy = i*q;
 int posx = j*q;
-int x_Ready= 9.4 * q, y_Ready=12 * q ; // posiÃ§Ã£o da imagem READY!
+int x_Ready= 9.4 * q, y_Ready=12 * q ; // posição da imagem READY!
 char pac_estado;
+int vidas=3;
 float xscore = 1*q, yscore = 25.5*q;
 
-float mpillsdy[25][25];
-float mpillsdx[25][25];
+int GBi = 12, GBj = 12;
+int GBposy = GBi*q;
+int GBposx = GBj*q;
+char GBdir;
+
+float mpillsdy[25][25] = {0};
+float mpillsdx[25][25] = {0};
 int qscore = 0;
 float xp1score = 6.1*q, xp2score = 7.42*q, xp3score = 8.7*q,xp4score = 10.1*q;
 float yp1score = 25.5*q, yp2score = 25.5*q, yp3score = 25.5*q, yp4score = 25.5*q;
@@ -105,8 +105,7 @@ bool sair = false;
 
 void destroy_all()
 {
-    al_destroy_audio_stream(musica_start_game);
-    al_destroy_audio_stream(musica_tela_start);
+
     al_destroy_sample(sample_start_game);
     al_destroy_sample(sample_tela_start);
     al_destroy_bitmap(bouncer);
@@ -117,7 +116,7 @@ void destroy_all()
 
 
 int inicializa() {
-    //iniciando bibliotecas, addons e arquivos necessÃ¡rios para rodar o pacman
+    //iniciando bibliotecas, addons e arquivos necessários para rodar o pacman
     if(!al_init())
     {
         cout << "Falha ao carregar Allegro" << endl;
@@ -143,6 +142,9 @@ int inicializa() {
     }
     sample_start_game = al_load_sample( "sound/start.wav" );
     sample_tela_start = al_load_sample( "sound/start.wav" );
+    sample_munch = al_load_sample( "sound/chomp.wav" );
+    sample_victory = al_load_sample( "sound/intermission.wav" );
+    sample_ghosts = al_load_sample( "sound/ghost.wav" );
 
     if(!al_install_keyboard())
     {
@@ -198,6 +200,15 @@ int inicializa() {
     }
     al_draw_bitmap(pacman,posx,posy,0);
 
+    GBlue = al_load_bitmap("img/ghosts/blue/blueU.tga");
+    if(!GBlue)
+    {
+        cout << "Falha ao carregar o GBlue!" << endl;
+        al_destroy_display(display);
+        return 0;
+    }
+    al_draw_bitmap(GBlue,GBposx,GBposy,0);
+
     ready = al_load_bitmap("img/maps/ready.bmp");
     if(!ready)
     {
@@ -207,7 +218,7 @@ int inicializa() {
     }
     al_draw_bitmap(ready,x_Ready,y_Ready,0);
 
-    pillsr = al_load_bitmap("img/maps/pillsr.tga");
+    pillsr = al_load_bitmap("img/maps/pillsr.bmp");
     if(!pillsr)
     {
         cout << "Falla ao carregar pills" << endl;
@@ -325,31 +336,6 @@ int inicializa() {
         return 0;
     }
 
-    musica_start_game = al_load_audio_stream("sound/start.wav", 5, 1024);
-
-    if (!musica_start_game)
-    {
-        cout <<  "Falha ao carregar audio.\n"<<endl;
-        al_destroy_event_queue(event_queue);
-        al_destroy_display(display);
-        al_destroy_timer(timer);
-        al_destroy_sample(sample_start_game);
-        return 0;
-    }
-
-    musica_tela_start = al_load_audio_stream("sound/start.wav", 5, 1024);
-
-    if (!musica_tela_start)
-    {
-        cout <<  "Falha ao carregar audio.\n"<<endl;
-        al_destroy_event_queue(event_queue);
-        al_destroy_display(display);
-        al_destroy_timer(timer);
-        al_destroy_sample(sample_tela_start);
-        return 0;
-    }
-
-
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
@@ -367,13 +353,14 @@ void start()
     al_clear_to_color(al_map_rgb(0,0,0));
     al_draw_bitmap(mapa,0,0,0);
     al_draw_bitmap(pacman,posx,posy,0);
+    al_draw_bitmap(GBlue,GBposx,GBposy,0);
     al_draw_bitmap(ready,x_Ready,y_Ready,0);
     al_flip_display();
     al_rest(4.0);
     al_clear_to_color(al_map_rgb(0,0,0));
     al_draw_bitmap(mapa,0,0,0);
-    for (int i = 0;i<25;i++)
-        for (int j = 0;j<25;j++)
+    for (int i = 0;i<26;i++)
+        for (int j = 0;j<26;j++)
             if (MAPA[i][j]=='0'){
                 mpillsdx[i][j] = j*q;
                 mpillsdy[i][j] = i*q;
@@ -388,7 +375,7 @@ void start()
 void draw_tela_start()
 {
     //Inicio do jogo
-    //Enquanto a mÃºsica de intro nÃ£o acabar nÃ£o inicia o jogo
+    //Enquanto a música de intro não acabar não inicia o jogo
     bool sair=false;
     bool animacao = true;
     while(!sair)
@@ -440,11 +427,28 @@ void draw_tela_start()
     al_destroy_sample(sample_tela_start);
 }
 
+char * caminhoGB(char GBdir)
+{
+    char * arquivo = new char[23];
+    {
+        if(GBdir == 'U')
+            strcpy(arquivo,"img/ghosts/blue/blueU.tga");
+        if(GBdir == 'D')
+            strcpy(arquivo,"img/ghosts/blue/blueD.tga");
+        if(GBdir == 'L')
+            strcpy(arquivo,"img/ghosts/blue/blueL.tga");
+        if(GBdir == 'R')
+            strcpy(arquivo,"img/ghosts/blue/blueR.tga");
+    }
+
+    return arquivo;
+
+}
 
 char * caminho(bool munch,char key)
 {
     /*
-        muda a imagem de acordo com a direÃ§Ã£o que o pacman estÃ¡ andando:
+        muda a imagem de acordo com a direção que o pacman está andando:
         para cima  'UP' = pacmanU
         para baixo 'DOWN' = pacmanD
         para direita 'RIGHT' = pacmanR
@@ -522,135 +526,243 @@ void key_enable(int KEY,char celula)
 
 }
 
+void victory()
+{
+    bool animacao = true;
+
+    pacman = al_load_bitmap("img/pacman/pacman.tga");
+
+    for(int w = 0; w < 50; w++ )
+    {
+        al_play_sample(sample_victory, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+
+        if(animacao)
+            mapa = al_load_bitmap( "img/maps/map.bmp" );
+        else
+            mapa = al_load_bitmap( "img/maps/map_victory.bmp" );
+
+
+        al_clear_to_color(al_map_rgb(0,0,0));
+        al_draw_bitmap(mapa,0,0,0);
+        al_draw_bitmap(pacman,posx,posy,0);
+        al_flip_display();
+        al_rest(0.09);
+        animacao = !animacao;
+    }
+
+    destroy_all();
+
+
+}
+
+void game_over(int vidas)
+{
+    if(vidas <= 0)
+    {
+
+        al_clear_to_color(al_map_rgb(0,0,0));
+        al_draw_bitmap(mapa,0,0,0);
+        pacman = al_load_bitmap("img/pacman/death/pacdeadst1");
+        al_draw_bitmap(pacman,posx,posy,0);
+        al_flip_display();
+        al_rest(0.1);
+        pacman = al_load_bitmap("img/pacman/death/pacdeadst1");
+        al_draw_bitmap(pacman,posx,posy,0);
+        al_flip_display();
+        al_rest(0.1);
+
+
+    }
+
+
+
+}
+
+
+void redraw_placar()
+{
+
+        al_draw_bitmap(pacman,posx,posy,0);
+        al_draw_bitmap(score,xscore,yscore,0);
+        int uni, dzn, cent, aux;
+        uni = qscore%10;
+        aux = qscore%100;
+        dzn = aux/10;
+        cent = qscore/100;
+
+        //desenha un zero atrás do número para aumentar a sensação de recompensa
+        al_draw_bitmap(zero,xp4score,yp4score,0);
+
+        //contrela dos algarismos do placar
+        if (uni==0){
+            al_draw_bitmap(zero,xp3score,yp3score,0);
+        }
+        else if(uni==1){
+            al_draw_bitmap(um,xp3score,yp3score,0);
+        }
+        else if(uni==2){
+            al_draw_bitmap(dois,xp3score,yp3score,0);
+        }
+        else if(uni==3){
+            al_draw_bitmap(tres,xp3score,yp3score,0);
+        }
+        else if(uni==4){
+            al_draw_bitmap(quatro,xp3score,yp3score,0);
+        }
+        else if(uni==5){
+            al_draw_bitmap(cinco,xp3score,yp3score,0);
+        }
+        else if(uni==6){
+            al_draw_bitmap(seis,xp3score,yp3score,0);
+        }
+        else if(uni==7){
+            al_draw_bitmap(sete,xp3score,yp3score,0);
+        }
+        else if(uni==8){
+            al_draw_bitmap(oito,xp3score,yp3score,0);
+        }
+        else if (uni==9){
+            al_draw_bitmap(nove,xp3score,yp3score,0);
+        }
+
+        if(qscore>9){
+        if(dzn==0){
+            al_draw_bitmap(zero,xp2score,yp2score,0);
+        }
+        else if(dzn==1){
+            al_draw_bitmap(um,xp2score,yp2score,0);
+        }
+        else if(dzn==2){
+            al_draw_bitmap(dois,xp2score,yp2score,0);
+        }
+        else if(dzn==3){
+            al_draw_bitmap(tres,xp2score,yp2score,0);
+        }
+        else if(dzn==4){
+            al_draw_bitmap(quatro,xp2score,yp2score,0);
+        }
+        else if(dzn==5){
+            al_draw_bitmap(cinco,xp2score,yp2score,0);
+        }
+        else if(dzn==6){
+            al_draw_bitmap(seis,xp2score,yp2score,0);
+        }
+        else if(dzn==7){
+            al_draw_bitmap(sete,xp2score,yp2score,0);
+        }
+        else if(dzn==8){
+            al_draw_bitmap(oito,xp2score,yp2score,0);
+        }
+        else if (dzn==9){
+            al_draw_bitmap(nove,xp2score,yp2score,0);
+        }
+        }
+
+        if(cent==1){
+            al_draw_bitmap(um,xp1score,yp1score,0);
+        }
+        else if(cent==2){
+            al_draw_bitmap(dois,xp1score,yp1score,0);
+        }
+        else if(cent==3){
+            al_draw_bitmap(tres,xp1score,yp1score,0);
+        }
+        else if(cent==4){
+            al_draw_bitmap(quatro,xp1score,yp1score,0);
+        }
+        else if(cent==5){
+            al_draw_bitmap(cinco,xp1score,yp1score,0);
+        }
+        else if(cent==6){
+            al_draw_bitmap(seis,xp1score,yp1score,0);
+        }
+        else if(cent==7){
+            al_draw_bitmap(sete,xp1score,yp1score,0);
+        }
+        else if(cent==8){
+            al_draw_bitmap(oito,xp1score,yp1score,0);
+        }
+        else if (cent==9){
+            al_draw_bitmap(nove,xp1score,yp1score,0);
+        }
+
+        al_flip_display();
+
+
+}
+
+
 void redraw_map(){
 
 
-    al_clear_to_color(al_map_rgb(0,0,0));
-    al_draw_bitmap(mapa,0,0,0);
-    for (int i = 0;i<25;i++)
-        for (int j = 0;j<25;j++)
-            if (MAPA[i][j]=='0'){
-                mpillsdx[i][j] = j*q;
-                mpillsdy[i][j] = i*q;
-                al_draw_bitmap(pillsr,mpillsdx[i][j],mpillsdy[i][j],0);
-            }
+    if(qscore >= 250)
+    {
+        redraw_placar();
+        victory();
+    }
+    else
+    {
+        al_clear_to_color(al_map_rgb(0,0,0));
+        al_draw_bitmap(mapa,0,0,0);
+        for (int i = 0;i<26;i++)
+            for (int j = 0;j<26;j++)
+                if (MAPA[i][j]=='0')
+                {
+                    if(posx == mpillsdx[i][j] && posy == mpillsdy[i][j])
+                    {
+                        al_play_sample(sample_munch, 1.0, 0.0, 1.06, ALLEGRO_PLAYMODE_ONCE, NULL);
+                        //al_draw_bitmap(pillsr,mpillsdx[i][j],mpillsdy[i][j],0);
+                        mpillsdx[i][j] = 1200 * q;
+                        mpillsdy[i][j] = 1200 * q;
 
-    al_draw_bitmap(pacman,posx,posy,0);
-    al_draw_bitmap(score,xscore,yscore,0);
-    int uni, dzn, cent, aux;
-    uni = qscore%10;
-    aux = qscore%100;
-    dzn = aux/10;
-    cent = qscore/100;
+                    }
+                    else if(mpillsdx[i][j] != 0 || mpillsdy[i][j] != 0)
+                        al_draw_bitmap(pillsr,mpillsdx[i][j],mpillsdy[i][j],0);
 
-    //desenha un zero atrÃ¡s do nÃºmero para aumentar a sensaÃ§Ã£o de recompensa
-    al_draw_bitmap(zero,xp4score,yp4score,0);
+                }
 
-    //contrela dos algarismos do placar
-    if (uni==0){
-        al_draw_bitmap(zero,xp3score,yp3score,0);
+        redraw_placar();
     }
-    else if(uni==1){
-        al_draw_bitmap(um,xp3score,yp3score,0);
-    }
-    else if(uni==2){
-        al_draw_bitmap(dois,xp3score,yp3score,0);
-    }
-    else if(uni==3){
-        al_draw_bitmap(tres,xp3score,yp3score,0);
-    }
-    else if(uni==4){
-        al_draw_bitmap(quatro,xp3score,yp3score,0);
-    }
-    else if(uni==5){
-        al_draw_bitmap(cinco,xp3score,yp3score,0);
-    }
-    else if(uni==6){
-        al_draw_bitmap(seis,xp3score,yp3score,0);
-    }
-    else if(uni==7){
-        al_draw_bitmap(sete,xp3score,yp3score,0);
-    }
-    else if(uni==8){
-        al_draw_bitmap(oito,xp3score,yp3score,0);
-    }
-    else if (uni==9){
-        al_draw_bitmap(nove,xp3score,yp3score,0);
-    }
-
-    if(qscore>9){
-    if(dzn==0){
-        al_draw_bitmap(zero,xp2score,yp2score,0);
-    }
-    else if(dzn==1){
-        al_draw_bitmap(um,xp2score,yp2score,0);
-    }
-    else if(dzn==2){
-        al_draw_bitmap(dois,xp2score,yp2score,0);
-    }
-    else if(dzn==3){
-        al_draw_bitmap(tres,xp2score,yp2score,0);
-    }
-    else if(dzn==4){
-        al_draw_bitmap(quatro,xp2score,yp2score,0);
-    }
-    else if(dzn==5){
-        al_draw_bitmap(cinco,xp2score,yp2score,0);
-    }
-    else if(dzn==6){
-        al_draw_bitmap(seis,xp2score,yp2score,0);
-    }
-    else if(dzn==7){
-        al_draw_bitmap(sete,xp2score,yp2score,0);
-    }
-    else if(dzn==8){
-        al_draw_bitmap(oito,xp2score,yp2score,0);
-    }
-    else if (dzn==9){
-        al_draw_bitmap(nove,xp2score,yp2score,0);
-    }
-    }
-
-    if(cent==1){
-        al_draw_bitmap(um,xp1score,yp1score,0);
-    }
-    else if(cent==2){
-        al_draw_bitmap(dois,xp1score,yp1score,0);
-    }
-    else if(cent==3){
-        al_draw_bitmap(tres,xp1score,yp1score,0);
-    }
-    else if(cent==4){
-        al_draw_bitmap(quatro,xp1score,yp1score,0);
-    }
-    else if(cent==5){
-        al_draw_bitmap(cinco,xp1score,yp1score,0);
-    }
-    else if(cent==6){
-        al_draw_bitmap(seis,xp1score,yp1score,0);
-    }
-    else if(cent==7){
-        al_draw_bitmap(sete,xp1score,yp1score,0);
-    }
-    else if(cent==8){
-        al_draw_bitmap(oito,xp1score,yp1score,0);
-    }
-    else if (cent==9){
-        al_draw_bitmap(nove,xp1score,yp1score,0);
-    }
-
-    al_flip_display();
 }
 
 void redraw_pacman()
 {
     al_clear_to_color(al_map_rgb(0,0,0));
     al_draw_bitmap(mapa,0,0,0);
+
+    if(pac_estado == 'R')
+    {
+
+        if(posy == 28  && i == 10)
+        {
+            posx = 0*q;
+            posy = 13*q;
+        }
+
+
+    }
+
+    if(pac_estado == 'L')
+    {
+        if(j == 3 && i == 10)
+        {
+            posx = 25 * q;
+            posy = 13*q;
+        }
+
+    }
+
+
     al_draw_bitmap(pacman,posx,posy,0);
+    al_draw_bitmap(GBlue,GBposx,GBposy,0);
 
 }
 
+void redraw_Gblue()
+{
+    //al_draw_bitmap(GBlue,GBposx,GBposy,0);
 
+}
 
 void animacao(char estado)
 {
@@ -658,10 +770,12 @@ void animacao(char estado)
     {
         pacman = al_load_bitmap(caminho(false,'U'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'U'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
 
@@ -670,10 +784,12 @@ void animacao(char estado)
     {
         pacman = al_load_bitmap(caminho(false,'D'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'D'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
     }
@@ -681,10 +797,12 @@ void animacao(char estado)
     {
         pacman = al_load_bitmap(caminho(false,'L'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'L'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
     }
@@ -692,14 +810,18 @@ void animacao(char estado)
     {
         pacman = al_load_bitmap(caminho(false,'R'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
         pacman = al_load_bitmap(caminho(true,'R'));
         redraw_pacman();
+        redraw_Gblue();
         redraw_map();
         al_rest(0.1);
     }
 }
+
+
 
 int main(int argc, char **argv)
 {
@@ -714,11 +836,16 @@ int main(int argc, char **argv)
     //da inicio ao jogo
     start();
 
+
+
+    bool sair = false;
+
     while(!sair)
     {
+
+
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
-
 
 
         if(ev.type == ALLEGRO_EVENT_TIMER)
@@ -758,8 +885,10 @@ int main(int argc, char **argv)
                     MAPA[i][j]='2';
                     qscore++;
                 }
+
                 pac_estado = 'L';
                 j--;
+
                 posx = j*q;
 
             }
@@ -770,9 +899,50 @@ int main(int argc, char **argv)
                     MAPA[i][j]='2';
                     qscore++;
                 }
-                pac_estado = 'R';
-                j++;
+
+
+                    pac_estado = 'R';
+                    j++;
+
+
                 posx = j*q;
+
+            }
+
+            GBdir = 'U';
+            if(GBdir == 'U' && MAPA[i-1][j] != '1')
+            {
+                /*GBdir = 'U';// pacmanU = pacman Up
+                i--;
+                GBposy = i*q;*/
+
+
+
+                //animacao(pac_estado,posx,posy,i,j);
+            }
+
+            else if(GBdir == 'D' && MAPA[i+1][j] != '1')
+            {
+
+                GBdir = 'D';
+                i++;
+                GBposy = i*q;
+
+            }
+
+            else if(GBdir == 'L' && MAPA[i][j-1] != '1')
+            {
+                GBdir = 'L';
+                j--;
+                GBposx = j*q;
+
+            }
+
+            else if(GBdir == 'R' && MAPA[i][j+1] != '1')
+            {
+                GBdir = 'R';
+                j++;
+                GBposx = j*q;
             }
 
             redraw = true;
@@ -823,7 +993,7 @@ int main(int argc, char **argv)
                     break;
 
                 case ALLEGRO_KEY_ESCAPE:
-                    destroy_all();
+                    sair = true;
                     break;
             }
 
@@ -832,6 +1002,11 @@ int main(int argc, char **argv)
         if(redraw && al_is_event_queue_empty(event_queue))
         {
             redraw = false;
+
+
+            if(MAPA[i][j] != '0')
+                al_play_sample(sample_ghosts, 1.0, 0.0, 1.05, ALLEGRO_PLAYMODE_ONCE, NULL);
+
 
             animacao(pac_estado);
         }
@@ -842,3 +1017,7 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+
+
+
